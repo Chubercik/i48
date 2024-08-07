@@ -119,7 +119,7 @@ impl From<std::num::ParseIntError> for I48Error {
 #[cfg_attr(feature = "pyo3", pyclass)]
 /// An experimental 48-bit signed integer type.
 ///
-/// This type is a wrapper around ``[u16; 3]`` and is used to represent 48-bit data.
+/// This type is a wrapper around ``[u8; 6]`` and is used to represent 48-bit data.
 /// It should not be used anywhere important. It is still unverified and experimental.
 ///
 /// The type is not yet fully implemented and is not guaranteed to work.
@@ -127,10 +127,10 @@ impl From<std::num::ParseIntError> for I48Error {
 ///
 /// Represents a 48-bit signed integer.
 ///
-/// This struct stores the integer as three words (equal to six bytes) in little-endian order.
+/// This struct stores the integer as six bytes in little-endian order.
 pub struct i48 {
-    /// The raw word representation of the 48-bit integer.
-    pub data: [u16; 3],
+    /// The raw byte representation of the 48-bit integer.
+    pub data: [u8; 6],
 }
 
 impl i48 {
@@ -142,11 +142,8 @@ impl i48 {
     ///
     /// The 64-bit signed integer representation of this `i48`.
     pub const fn to_i64(self) -> i64 {
-        let [a, b] = self.data[0].to_be_bytes();
-        let [c, d] = self.data[1].to_be_bytes();
-        let [e, f] = self.data[2].to_be_bytes();
-        let bytes = [a, b, c, d, e, f, 0, 0];
-        let value = i64::from_le_bytes(bytes);
+        let [a, b, c, d, e, f] = self.data;
+        let value = i64::from_le_bytes([a, b, c, d, e, f, 0, 0]);
         if value & 0x800000000000 != 0 {
             value | 0xFFFF000000000000u64 as i64
         } else {
@@ -168,9 +165,7 @@ impl i48 {
     pub const fn from_i64(n: i64) -> Self {
         let bytes = n.to_le_bytes();
         Self {
-            data: [u16::from_be_bytes([bytes[0], bytes[1]]),
-                   u16::from_be_bytes([bytes[2], bytes[3]]),
-                   u16::from_be_bytes([bytes[4], bytes[5]])],
+            data: [bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]],
         }
     }
 
@@ -184,23 +179,12 @@ impl i48 {
     ///
     /// An `i48` instance containing the input bytes.
     pub const fn from_ne_bytes(bytes: [u8; 6]) -> Self {
-        Self {
-            data: [u16::from_be_bytes(if cfg!(target_endian = "big") {
-                [bytes[5], bytes[4]]
-            } else {
-                [bytes[0], bytes[1]]
-            }),
-                   u16::from_be_bytes(if cfg!(target_endian = "big") {
-                [bytes[3], bytes[2]]
-            } else {
-                [bytes[2], bytes[3]]
-            }),
-                   u16::from_be_bytes(if cfg!(target_endian = "big") {
-                [bytes[1], bytes[0]]
-            } else {
-                [bytes[4], bytes[5]]
-            })],
-        }
+        let data = if cfg!(target_endian = "big") {
+            [bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]]
+        } else {
+            [bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]]
+        };
+        Self { data }
     }
 
     /// Creates an `i48` from six bytes in **little-endian** order.
@@ -214,9 +198,7 @@ impl i48 {
     /// An `i48` instance containing the input bytes.
     pub const fn from_le_bytes(bytes: [u8; 6]) -> Self {
         Self {
-            data: [u16::from_be_bytes([bytes[0], bytes[1]]),
-                   u16::from_be_bytes([bytes[2], bytes[3]]),
-                   u16::from_be_bytes([bytes[4], bytes[5]])],
+            data: [bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]],
         }
     }
 
@@ -231,9 +213,7 @@ impl i48 {
     /// An `i48` instance with the bytes in little-endian order.
     pub const fn from_be_bytes(bytes: [u8; 6]) -> Self {
         Self {
-            data: [u16::from_be_bytes([bytes[5], bytes[4]]),
-                   u16::from_be_bytes([bytes[3], bytes[2]]),
-                   u16::from_be_bytes([bytes[1], bytes[0]])],
+            data: [bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]],
         }
     }
 
@@ -321,7 +301,7 @@ impl Num for i48 {
     type FromStrRadixErr = I48Error;
     fn from_str_radix(str: &str, radix: u32) -> Result<Self, Self::FromStrRadixErr> {
         let i64_result = i64::from_str_radix(str, radix).map_err(I48Error::ParseError)?;
-        if i64_result < -140737488355328 || i64_result > 140737488355327 {
+        if !(-140737488355328..=140737488355327).contains(&i64_result) {
             Err(I48Error::OutOfRange)
         } else {
             Ok(i48::from_i64(i64_result))
@@ -469,7 +449,7 @@ impl FromStr for i48 {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let i64_result = i64::from_str(s)?;
-        if i64_result < -140737488355328 || i64_result > 140737488355327 {
+        if !(-140737488355328..=140737488355327).contains(&i64_result) {
             Err(I48Error::OutOfRange)
         } else {
             Ok(i48::from_i64(i64_result))
@@ -580,16 +560,22 @@ mod i48_tests {
 
     #[test]
     fn test_from_bytes() {
-        assert_eq!(i48::from_ne_bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]).to_i64(),
-                   if cfg!(target_endian = "big") {
-                    0x010203040506
-                   } else {
-                    0x060504030201
-                   });
-        assert_eq!(i48::from_le_bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]).to_i64(),
-                   0x060504030201);
-        assert_eq!(i48::from_be_bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]).to_i64(),
-                    0x010203040506);
+        assert_eq!(
+            i48::from_ne_bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]).to_i64(),
+            if cfg!(target_endian = "big") {
+                0x010203040506
+            } else {
+                0x060504030201
+            }
+        );
+        assert_eq!(
+            i48::from_le_bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]).to_i64(),
+            0x060504030201
+        );
+        assert_eq!(
+            i48::from_be_bytes([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]).to_i64(),
+            0x010203040506
+        );
     }
 
     #[test]
@@ -611,10 +597,22 @@ mod i48_tests {
     fn test_from_str() {
         assert_eq!(i48::from_str("100").unwrap().to_i64(), 100);
         assert_eq!(i48::from_str("-100").unwrap().to_i64(), -100);
-        assert_eq!(i48::from_str("140737488355327").unwrap().to_i64(), 140737488355327); // Max positive value
-        assert_eq!(i48::from_str("-140737488355328").unwrap().to_i64(), -140737488355328); // Min negative value
-        assert_eq!(i48::from_str("140737488355328").unwrap_err(), I48Error::OutOfRange);
-        assert_eq!(i48::from_str("-140737488355329").unwrap_err(), I48Error::OutOfRange);
+        assert_eq!(
+            i48::from_str("140737488355327").unwrap().to_i64(),
+            140737488355327
+        ); // Max positive value
+        assert_eq!(
+            i48::from_str("-140737488355328").unwrap().to_i64(),
+            -140737488355328
+        ); // Min negative value
+        assert_eq!(
+            i48::from_str("140737488355328").unwrap_err(),
+            I48Error::OutOfRange
+        );
+        assert_eq!(
+            i48::from_str("-140737488355329").unwrap_err(),
+            I48Error::OutOfRange
+        );
     }
 
     #[test]
