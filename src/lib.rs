@@ -179,40 +179,12 @@ impl i48 {
     ///
     /// An `i48` instance containing the input bytes.
     pub const fn from_ne_bytes(bytes: [u8; 6]) -> Self {
-        Self {
-            data: [
-                if cfg!(target_endian = "big") {
-                    bytes[5]
-                } else {
-                    bytes[0]
-                },
-                if cfg!(target_endian = "big") {
-                    bytes[4]
-                } else {
-                    bytes[1]
-                },
-                if cfg!(target_endian = "big") {
-                    bytes[3]
-                } else {
-                    bytes[2]
-                },
-                if cfg!(target_endian = "big") {
-                    bytes[2]
-                } else {
-                    bytes[3]
-                },
-                if cfg!(target_endian = "big") {
-                    bytes[1]
-                } else {
-                    bytes[4]
-                },
-                if cfg!(target_endian = "big") {
-                    bytes[0]
-                } else {
-                    bytes[5]
-                },
-            ],
-        }
+        let data = if cfg!(target_endian = "big") {
+            [bytes[5], bytes[4], bytes[3], bytes[2], bytes[1], bytes[0]]
+        } else {
+            [bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]]
+        };
+        Self { data }
     }
 
     /// Creates an `i48` from six bytes in **little-endian** order.
