@@ -1,8 +1,8 @@
 //! # i48: A 48-bit Signed Integer Type
 //!
 //! The `i48` crate provides a 48-bit signed integer type for Rust, filling the gap between
-//! `i32` and `i64`. This type is particularly useful in image processing (deep color)
-//! and other scenarios where 48-bit precision is required but 64 bits would be excessive.
+//! `i32` and `i64`. This type may be useful in certain scenarios where 48-bit precision
+//! is required but 64 bits would be excessive.
 //!
 //! ## Features
 //!
