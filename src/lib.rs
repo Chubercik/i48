@@ -22,7 +22,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! i48 = "1.0.0"
+//! i48 = "1.1.0"
 //! ```
 //!
 //! Then, in your Rust code:
