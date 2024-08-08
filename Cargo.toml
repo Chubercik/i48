@@ -1,6 +1,6 @@
 [package]
 name = "i48"
-version = "1.2.0-dev"
+version = "1.2.0"
 edition = "2021"
 license = "MIT"
 description = "A Rust library for working with 48-bit integers."

@@ -18,7 +18,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-i48 = "1.1.0"
+i48 = "1.2.0"
 ```
 
 ## Usage

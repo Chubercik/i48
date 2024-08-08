@@ -1,4 +1,4 @@
-### Version 1.2.0-dev
+### Version 1.2.0
 
 - Implement the `From<i64>` trait for `i48` and vice versa
 - Add `main.rs` to showcase exemplary usage
