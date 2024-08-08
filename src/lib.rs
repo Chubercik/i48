@@ -278,6 +278,18 @@ impl i48 {
     }
 }
 
+impl From<i64> for i48 {
+    fn from(value: i64) -> Self {
+        i48::from_i64(value)
+    }
+}
+
+impl From<i48> for i64 {
+    fn from(value: i48) -> Self {
+        value.to_i64()
+    }
+}
+
 unsafe impl Zeroable for i48 {}
 unsafe impl Pod for i48 {}
 

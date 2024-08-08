@@ -1,3 +1,7 @@
+### Version 1.2.0-dev
+
+- Implement the `From<i64>` trait for `i48` and vice versa
+
 ### Version 1.1.0
 
 - Change `i48` representation to `[u8; 6]` (from `[u16; 3]`) ([#2](https://github.com/Chubercik/i48/pull/2))
