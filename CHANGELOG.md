@@ -1,6 +1,7 @@
 ### Version 1.2.0-dev
 
 - Implement the `From<i64>` trait for `i48` and vice versa
+- Add `main.rs` to showcase exemplary usage
 
 ### Version 1.1.0
 

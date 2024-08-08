@@ -25,9 +25,11 @@ i48 = "1.1.0"
 
 ```rust
 use i48::i48;
-let a = i48::from_i64(1000);
-let b = i48::from_i64(2000);
+
+let a: i48 = 1000.into();
+let b: i48 = 2000.into();
 let c = a + b;
+
 assert_eq!(c.to_i64(), 3000);
 ```
 
